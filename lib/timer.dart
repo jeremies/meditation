@@ -16,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:meditation/audioplayer.dart';
+import 'package:meditation/stats_service.dart';
 import 'package:meditation/utils.dart';
 
 enum TimerState { stopped, delaying, meditating }
@@ -123,7 +124,7 @@ class _TimerWidgetState extends State<TimerWidget> with SingleTickerProviderStat
       if (timerState == TimerState.meditating) {
         log.i(
             "ending timer through displayedStream notification callback. timeleft: ${timeLeft.inMilliseconds} ms");
-        onTimerEnd();
+        onTimerEnd(completed: true);
       }
     }
     if (intervalNotificationIDs.contains(notificationID)) {
@@ -178,7 +179,7 @@ class _TimerWidgetState extends State<TimerWidget> with SingleTickerProviderStat
         // not sure how fast ticker is called but maybe 60fps? so 16.6 ms between calls
         // 200ms allows for ~12 frames leeway
         log.i("ending timer through timerUpdate");
-        onTimerEnd();
+        onTimerEnd(completed: true);
         return;
       }
 
@@ -318,9 +319,9 @@ class _TimerWidgetState extends State<TimerWidget> with SingleTickerProviderStat
       AwesomeNotifications().cancel(intervalNotificationID);
       // onTimerEnd(playAudio: true);
       if (kReleaseMode) {
-        onTimerEnd(playAudio: false);
+        onTimerEnd(playAudio: false, completed: false);
       } else {
-        onTimerEnd(playAudio: true);
+        onTimerEnd(playAudio: true, completed: false);
       }
     }
   }
@@ -447,7 +448,7 @@ class _TimerWidgetState extends State<TimerWidget> with SingleTickerProviderStat
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Meditation started')));
   }
 
-  void onTimerEnd({bool playAudio = true}) async {
+  void onTimerEnd({bool playAudio = true, bool completed = false}) async {
     // log.i("timer-end", "called");
     // making sure this doesn't get called twice
     // since we do use the backup check on timerUpdate
@@ -456,6 +457,11 @@ class _TimerWidgetState extends State<TimerWidget> with SingleTickerProviderStat
       // if (!meditating) {
       log.e("onTimerEnd called when it shouldn't have");
       return;
+    }
+
+    if (completed && timerMinutes > 0) {
+      log.i("Recording completed meditation session: $timerMinutes minutes");
+      StatsService.instance.recordSession(timerMinutes);
     }
 
     setState(() {
@@ -529,8 +535,7 @@ class _TimerWidgetState extends State<TimerWidget> with SingleTickerProviderStat
         category: NotificationCategory.Event,
         // notificationLayout: NotificationLayout.Default,
         notificationLayout: NotificationLayout.BigPicture,
-        // criticalAlert: play sounds even when in dnd. likely only useful for ios
-        criticalAlert: true,
+        // criticalAlert: play sounds even when in dnd. configured on channel level
         // autoDismissible: gets dismissed on tap (meaning even when it opens the app, it dismisses itself)
         // if false, tapping will open the app but the notification stays
         autoDismissible: true,
@@ -573,7 +578,6 @@ class _TimerWidgetState extends State<TimerWidget> with SingleTickerProviderStat
         largeIcon: 'resource://mipmap/ic_launcher',
         category: NotificationCategory.Event,
         notificationLayout: NotificationLayout.BigPicture,
-        criticalAlert: false,
         autoDismissible: true,
         wakeUpScreen: false,
         fullScreenIntent: false,
@@ -600,7 +604,6 @@ class _TimerWidgetState extends State<TimerWidget> with SingleTickerProviderStat
         largeIcon: 'resource://mipmap/ic_launcher',
         category: NotificationCategory.Event,
         notificationLayout: NotificationLayout.BigPicture,
-        criticalAlert: true,
         autoDismissible: true,
         wakeUpScreen: true,
         fullScreenIntent: false,

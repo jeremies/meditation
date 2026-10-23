@@ -13,6 +13,7 @@ import 'package:app_settings/app_settings.dart';
 
 import 'package:meditation/audioplayer.dart';
 import 'package:meditation/settings.dart';
+import 'package:meditation/stats_screen.dart';
 import 'package:meditation/timer.dart';
 import 'package:meditation/utils.dart';
 
@@ -237,8 +238,15 @@ ButtonStyle timeSelectionButtonStyle = TextButton.styleFrom(
   textStyle: largeButtonsTextStyle,
 );
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -246,7 +254,7 @@ class Home extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Meditation Timer'),
+        title: Text(_selectedIndex == 0 ? 'Meditation Timer' : 'Statistics'),
         actions: <Widget>[
           IconButton(
             icon: const Icon(
@@ -261,8 +269,40 @@ class Home extends StatelessWidget {
           ),
         ],
       ),
-      body: Center(
-        child: TimerWidget(),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: const [
+          Center(
+            child: TimerWidget(),
+          ),
+          StatsScreen(),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        backgroundColor: surfaceColor,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: Colors.grey[500],
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.timer_outlined),
+            activeIcon: Icon(Icons.timer_rounded),
+            label: 'Timer',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart_outlined),
+            activeIcon: Icon(Icons.bar_chart_rounded),
+            label: 'Stats',
+          ),
+        ],
       ),
       floatingActionButton: kReleaseMode
           ? null
@@ -274,8 +314,8 @@ class Home extends StatelessWidget {
     );
   }
 
-  void afterBuild(context) async {
-    await Future.delayed(Duration(milliseconds: 500));
+  void afterBuild(BuildContext context) async {
+    await Future.delayed(const Duration(milliseconds: 500));
     // this will ask for permission if first app run
     initNotifications();
   }

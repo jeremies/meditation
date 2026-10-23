@@ -33,7 +33,7 @@ dependencies:
 
   # Project dependencies
   audioplayers: ^6.0.0
-  awesome_notifications: ^0.10.0 # receive_boot_completed, vibrate
+  awesome_notifications: ^0.12.1 # receive_boot_completed, vibrate
   flutter_background: ^1.1.0 # foreground_service, wake_lock
   do_not_disturb: ^1.0.1
   #  flutter_foreground_task: ^3.5.5
@@ -47,6 +47,7 @@ dependencies:
   package_info_plus: ^8.0.3
   event_bus: ^2.0.0
   app_settings: ^5.1.1
+  intl: ^0.20.0
 
   flutter_settings_screens:
     #    path: /home/nyxkn/apps/flutter-projects/flutter_settings_screens
