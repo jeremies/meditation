@@ -101,6 +101,13 @@ class StatsService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> clearAllSessions() async {
+    _sessions = [];
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_storageKey);
+    notifyListeners();
+  }
+
   static DateTime normalizeDate(DateTime dt) =>
       DateTime(dt.year, dt.month, dt.day);
 

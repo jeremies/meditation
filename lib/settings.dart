@@ -8,6 +8,7 @@ import 'package:get_it/get_it.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:meditation/audioplayer.dart';
+import 'package:meditation/stats_service.dart';
 import 'package:meditation/utils.dart';
 
 const Map<String, String> audioFiles = {
@@ -239,6 +240,56 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                       applicationLegalese:
                           "${packageInfo.packageName}\n\nA meditation timer made with Flutter.",
                     );
+                  },
+                ),
+              ],
+            ),
+            SettingsGroup(
+              title: 'Danger Zone',
+              children: [
+                SimpleSettingsTile(
+                  title: 'Clear meditation history',
+                  subtitle: 'Permanently delete all session logs and stats',
+                  leading: const Icon(
+                    Icons.delete_forever,
+                    color: Colors.redAccent,
+                  ),
+                  onTap: () async {
+                    final shouldClear = await showDialog<bool>(
+                      context: context,
+                      builder: (BuildContext dialogContext) {
+                        return AlertDialog(
+                          title: const Text('Clear meditation history?'),
+                          content: const Text(
+                            'Are you sure you want to delete all session logs? This action cannot be undone and will reset your streaks and statistics.',
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.of(dialogContext).pop(false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(dialogContext).pop(true),
+                              child: const Text(
+                                'Clear',
+                                style: TextStyle(color: Colors.redAccent),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+
+                    if (shouldClear == true && context.mounted) {
+                      await StatsService.instance.clearAllSessions();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('All meditation history has been cleared'),
+                          ),
+                        );
+                      }
+                    }
                   },
                 ),
               ],

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:meditation/stats_service.dart';
 
 void main() {
@@ -159,6 +160,32 @@ void main() {
       expect(StatsService.calculateBestStreak([]), 0);
       expect(StatsService.calculateTotalMinutes([]), 0);
       expect(StatsService.getDailyMinutesMap([]), isEmpty);
+    });
+
+    test(
+        'clearAllSessions clears sessions in memory and SharedPreferences and notifies listeners',
+        () async {
+      SharedPreferences.setMockInitialValues({});
+      final service = StatsService.instance;
+      await service.recordSession(15);
+      expect(service.sessions.length, 1);
+
+      bool notified = false;
+      void listener() {
+        notified = true;
+      }
+
+      service.addListener(listener);
+
+      await service.clearAllSessions();
+
+      expect(service.sessions, isEmpty);
+      expect(notified, isTrue);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getStringList('meditation_sessions_history'), isNull);
+
+      service.removeListener(listener);
     });
   });
 }
