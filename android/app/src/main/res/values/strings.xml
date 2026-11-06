@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Meditation</string>
+    <string name="title_activity_main">Meditation</string>
+    <string name="package_name">com.nyxkn.meditation</string>
+    <string name="custom_url_scheme">com.nyxkn.meditation</string>
+</resources>
